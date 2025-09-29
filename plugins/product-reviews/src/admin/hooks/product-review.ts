@@ -1,11 +1,11 @@
+import { useCallback, useEffect, useState } from 'react';
 import {
   AdminCreateProductReviewResponseDTO,
   AdminListProductReviewsQuery,
   AdminListProductReviewsResponse,
   AdminUpdateProductReviewResponseDTO,
-} from '../../sdk/types';
+} from '../../types/admin';
 import { sdk } from '../lib/client';
-import { useState, useEffect, useCallback } from 'react';
 
 export const useAdminListProductReviews = (query: AdminListProductReviewsQuery) => {
   const [data, setData] = useState<AdminListProductReviewsResponse | undefined>(undefined);
@@ -86,38 +86,74 @@ export const useAdminUpdateProductReviewResponseMutation = (reviewId: string) =>
   return { mutate, isPending, error };
 };
 
-export const useAdminUpdateProductReviewStatusMutation = () => {
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  export const useAdminUpdateProductReviewStatusMutation = () => {
+    const [isPending, setIsPending] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
 
-  const mutate = useCallback(async (
-    {
-      reviewId,
-      status
-    }: {
-      reviewId: string;
-      status: 'pending' | 'approved' | 'flagged';
-    },
-    options?: {
-      onSuccess?: () => void;
-      onError?: (error: Error) => void;
-    }
-  ) => {
-    setIsPending(true);
-    setError(null);
-    try {
-      const result = await sdk.admin.productReviews.updateStatus(reviewId, status);
-      options?.onSuccess?.();
-      return result;
-    } catch (err) {
-      const error = err as Error;
-      setError(error);
-      options?.onError?.(error);
-      throw error;
-    } finally {
-      setIsPending(false);
-    }
-  }, []);
+    const mutate = useCallback(async (
+      {
+        reviewId,
+        status
+      }: {
+        reviewId: string;
+        status: 'pending' | 'approved' | 'flagged';
+      },
+      options?: {
+        onSuccess?: () => void;
+        onError?: (error: Error) => void;
+      }
+    ) => {
+      setIsPending(true);
+      setError(null);
+      try {
+        const result = await sdk.admin.productReviews.updateStatus(reviewId, status);
+        options?.onSuccess?.();
+        return result;
+      } catch (err) {
+        const error = err as Error;
+        setError(error);
+        options?.onError?.(error);
+        throw error;
+      } finally {
+        setIsPending(false);
+      }
+    }, []);
 
-  return { mutate, isPending, error };
-};
+    return { mutate, isPending, error };
+  };
+
+  export const useAdminUpdateProductReviewVerifiedMutation = () => {
+    const [isPending, setIsPending] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+
+    const mutate = useCallback(async (
+      {
+        reviewId,
+        verified
+      }: {
+        reviewId: string;
+        verified: boolean;
+      },
+      options?: {
+        onSuccess?: () => void;
+        onError?: (error: Error) => void;
+      }
+    ) => {
+      setIsPending(true);
+      setError(null);
+      try {
+        const result = await sdk.admin.productReviews.updateVerified(reviewId, verified);
+        
+        options?.onSuccess?.();
+        return result;
+      } catch (err) {
+        setError(err as Error);
+        options?.onError?.(err as Error);
+        throw err;
+      } finally {
+        setIsPending(false);
+      }
+    }, []);
+
+    return { mutate, isPending, error };
+  };

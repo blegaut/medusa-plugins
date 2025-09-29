@@ -7,7 +7,7 @@ import { ProductReviewResponseDrawer } from './ProductReviewResponseDrawer';
 import { ProductReviewDetailsDrawer } from './ProductReviewDetailsDrawer';
 import { Link } from 'react-router-dom';
 import { ReviewStars } from '../atoms/review-stars';
-import { AdminListProductReviewsQuery, AdminProductReview } from '../../sdk/types';
+import { AdminListProductReviewsQuery, AdminProductReview } from '../../../sdk/types';
 
 const PRODUCT_REVIEW_STATUSES = ['approved', 'flagged', 'pending'] as const;
 const columnHelper = createDataTableColumnHelper<AdminProductReview>();
@@ -131,7 +131,7 @@ const getColumns = (
     }),
     columnHelper.accessor('response', {
       id: 'response',
-      header: 'Response',
+      header: 'Response 2',
       enableSorting: false,
       cell: ({ row }) => {
         const content = row.original.response?.content;
@@ -147,6 +147,14 @@ const getColumns = (
             <p className="whitespace-normal break-words line-clamp-3">{content}</p>
           </div>
         );
+      },
+    }),
+    columnHelper.accessor('verified', {
+      id: 'verified',
+      header: 'verified',
+      enableSorting: false,
+      cell: ({ row }) => {
+        return <span>{row.original.verified}</span>;
       },
     }),
     columnHelper.action({

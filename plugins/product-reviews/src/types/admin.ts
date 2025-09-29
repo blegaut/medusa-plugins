@@ -1,5 +1,7 @@
 import type { HttpTypes } from '@medusajs/framework/types';
 
+export type ProductReviewStatus = 'pending' | 'approved' | 'flagged';
+
 export interface AdminProductReview {
   id: string;
   product_id: string;
@@ -12,7 +14,7 @@ export interface AdminProductReview {
   content?: string | null;
   name?: string | null;
   approved_by?: string | null;
-  status: 'pending' | 'approved' | 'flagged';
+  status: ProductReviewStatus;
   verified: boolean;
   created_at: Date | string;
   updated_at: Date | string;
@@ -65,13 +67,6 @@ export interface AdminListProductReviewsResponse {
   limit: number;
 }
 
-export interface AdminUpdateProductReviewRequest {
-  status?: 'pending' | 'approved' | 'flagged';
-  response?: {
-    content: string;
-  };
-}
-
 export interface AdminCreateProductReviewResponseDTO {
   content: string;
 }
@@ -80,7 +75,7 @@ export interface AdminUpdateProductReviewResponseDTO {
   content: string;
 }
 
-// SDK interface
+// SDK interface for backward compatibility
 export interface ProductReviewSDK {
   admin: {
     productReviews: {
@@ -88,18 +83,18 @@ export interface ProductReviewSDK {
       retrieve(id: string): Promise<{ product_review: AdminProductReview }>;
       update(id: string, data: AdminUpdateProductReviewRequest): Promise<{ product_review: AdminProductReview }>;
       updateStatus(id: string, status: string): Promise<{ product_review: AdminProductReview }>;
+      updateVerified(id: string, verified: boolean): Promise<{ product_review: AdminProductReview }>;
       delete(id: string): Promise<void>;
       createResponse(reviewId: string, body: AdminCreateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
       updateResponse(reviewId: string, body: AdminUpdateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
+      deleteResponse(reviewId: string): Promise<{ product_review: AdminProductReview }>;
     };
   };
 }
 
-// Global SDK declaration
-declare global {
-  const sdk: ProductReviewSDK & {
-    admin: {
-      productReviews: ProductReviewSDK['admin']['productReviews'];
-    };
+export interface AdminUpdateProductReviewRequest {
+  status?: ProductReviewStatus;
+  response?: {
+    content: string;
   };
 }

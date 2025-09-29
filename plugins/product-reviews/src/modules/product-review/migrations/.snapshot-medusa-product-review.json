@@ -69,6 +69,15 @@
           "nullable": true,
           "mappedType": "text"
         },
+        "variant_id": {
+          "name": "variant_id",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
         "order_id": {
           "name": "order_id",
           "type": "text",
@@ -92,6 +101,16 @@
             "flagged"
           ],
           "mappedType": "enum"
+        },
+        "verified": {
+          "name": "verified",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
         },
         "created_at": {
           "name": "created_at",
@@ -166,6 +185,15 @@
           "expression": "CREATE INDEX IF NOT EXISTS \"IDX_product_review_order_line_item_id\" ON \"product_review\" (order_line_item_id) WHERE deleted_at IS NULL"
         },
         {
+          "keyName": "IDX_product_review_variant_id",
+          "columnNames": [],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "expression": "CREATE INDEX IF NOT EXISTS \"IDX_product_review_variant_id\" ON \"product_review\" (variant_id) WHERE deleted_at IS NULL"
+        },
+        {
           "keyName": "product_review_pkey",
           "columnNames": [
             "id"
@@ -193,6 +221,15 @@
         },
         "url": {
           "name": "url",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "type": {
+          "name": "type",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,
@@ -424,12 +461,12 @@
         },
         "average_rating": {
           "name": "average_rating",
-          "type": "integer",
+          "type": "real",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "mappedType": "integer"
+          "mappedType": "float"
         },
         "review_count": {
           "name": "review_count",

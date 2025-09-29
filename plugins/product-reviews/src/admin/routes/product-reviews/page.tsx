@@ -195,6 +195,7 @@ const ProductReviewsPage = () => {
           'review',
           'images',
           'response',
+          'verified',
           'actions'
         ]}
       />

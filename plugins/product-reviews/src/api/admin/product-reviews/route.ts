@@ -1,4 +1,6 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework';
+import { PRODUCT_REVIEW_MODULE } from '../../../modules/product-review';
+import ProductReviewService from '../../../modules/product-review/service';
 
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
   const query = req.scope.resolve('query');
@@ -37,5 +39,17 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     pagination: req.queryConfig.pagination,
   });
 
-  res.status(200).json({ product_reviews, count: metadata.count, offset: metadata.skip, limit: metadata.take });
+  const productReviewService = req.scope.resolve<ProductReviewService>(
+    PRODUCT_REVIEW_MODULE
+  );
+  const { prefixUrl } = productReviewService;
+  const product_reviews_with_prefix = product_reviews.map((review: any) => ({
+    ...review,
+    images: review.images.map((image: any) => ({
+      ...image,
+      url: `${prefixUrl}${image.url}`,
+    })),
+  }));
+
+  res.status(200).json({ product_reviews: product_reviews_with_prefix, count: metadata.count, offset: metadata.skip, limit: metadata.take });
 };

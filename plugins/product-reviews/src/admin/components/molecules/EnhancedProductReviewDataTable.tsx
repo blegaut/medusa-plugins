@@ -2,12 +2,12 @@ import { ChatBubble, Eye, CheckCircle, XCircle, Clock } from '@medusajs/icons';
 import { Button, Table, Badge, Input } from '@medusajs/ui';
 import { DateTime } from 'luxon';
 import React, { useState } from 'react';
-import { useAdminListProductReviews, useAdminUpdateProductReviewStatusMutation } from '../../hooks/product-review';
+import { useAdminListProductReviews, useAdminUpdateProductReviewStatusMutation, useAdminUpdateProductReviewVerifiedMutation } from '../../hooks/product-review';
 import { ProductReviewResponseDrawer } from './ProductReviewResponseDrawer';
 import { ProductReviewDetailsDrawer } from './ProductReviewDetailsDrawer';
 import { Link } from 'react-router-dom';
 import { ReviewStars } from '../atoms/review-stars';
-import { AdminListProductReviewsQuery, AdminProductReview } from '../../sdk/types';
+import { AdminListProductReviewsQuery, AdminProductReview } from '../../../sdk/types';
 
 interface EnhancedProductReviewDataTableProps {
   query: AdminListProductReviewsQuery;
@@ -22,7 +22,7 @@ export const EnhancedProductReviewDataTable = ({
   currentPage,
   onPageChange,
   pageSize,
-  showColumns = ['product', 'rating', 'status', 'created_at', 'customer', 'review', 'images', 'response', 'actions']
+  showColumns = ['product', 'rating', 'status', 'created_at', 'customer', 'review', 'images', 'response', 'verified', 'actions']
 }: EnhancedProductReviewDataTableProps) => {
   const [selectedReview, setSelectedReview] = useState<AdminProductReview | null>(null);
   const [selectedReviewForDetails, setSelectedReviewForDetails] = useState<AdminProductReview | null>(null);
@@ -31,6 +31,9 @@ export const EnhancedProductReviewDataTable = ({
   const [triggerRefresh, setTriggerRefresh] = useState(0);
 
   const { mutate: updateStatus } = useAdminUpdateProductReviewStatusMutation();
+  const { mutate: updateVerified } = useAdminUpdateProductReviewVerifiedMutation();
+
+
   const { data, isLoading } = useAdminListProductReviews(query);
 
   const reviews = localReviews.length > 0 ? localReviews : data?.product_reviews || [];
@@ -147,6 +150,69 @@ export const EnhancedProductReviewDataTable = ({
     );
   };
 
+
+  const getVerifiedIcon = (verified: boolean) => {
+    switch (verified) {
+      case true:
+        return CheckCircle;
+      case false:
+        return XCircle;
+      default:
+        return XCircle;
+    }
+  };
+
+  const getNextVerified = (verified: boolean): boolean => {
+    return !verified;
+  };
+  const getVerifiedBadge = (review: AdminProductReview) => {
+    const colors = {
+      true: 'green',
+      false: 'red',
+    };
+    const Icon = getVerifiedIcon(review.verified);
+
+    return (
+      <Button
+        variant="transparent"
+        size="small"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const nextVerified = getNextVerified(review.verified);
+
+          // Update local state immediately for instant feedback
+          setLocalReviews(prevReviews =>
+            prevReviews.map(r =>
+              r.id === review.id ? { ...r, verified: nextVerified } : r
+            )
+          );
+
+          // Then update the backend
+          updateVerified({ reviewId: review.id, verified: nextVerified }, {
+            onSuccess: () => {
+              // Status update successful - local state already updated
+            },
+            onError: () => {
+              // Revert the optimistic update on error
+              setLocalReviews(prevReviews =>
+                prevReviews.map(r =>
+                  r.id === review.id ? { ...r, verified: review.verified } : r
+                )
+              );
+            }
+          });
+        }}
+        className="flex items-center gap-1 hover:bg-ui-bg-subtle rounded px-2 py-1"
+      >
+        <Icon className="h-4 w-4" />
+        <Badge color={colors[review.verified as unknown as keyof typeof colors] || 'grey'} size="small">
+          {review.verified ? 'Verified' : 'Unverified'}
+        </Badge>
+      </Button>
+    );
+  };
+
   return (
     <>
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -160,7 +226,8 @@ export const EnhancedProductReviewDataTable = ({
               {showColumns.includes('customer') && <Table.HeaderCell>Customer</Table.HeaderCell>}
               {showColumns.includes('review') && <Table.HeaderCell>Review</Table.HeaderCell>}
               {showColumns.includes('images') && <Table.HeaderCell>Images</Table.HeaderCell>}
-              {showColumns.includes('response') && <Table.HeaderCell>Response</Table.HeaderCell>}
+              {showColumns.includes('response') && <Table.HeaderCell>Response 1</Table.HeaderCell>}
+              {showColumns.includes('verified') && <Table.HeaderCell>Verified</Table.HeaderCell>}
               {showColumns.includes('actions') && <Table.HeaderCell>Actions</Table.HeaderCell>}
             </Table.Row>
           </Table.Header>
@@ -252,6 +319,11 @@ export const EnhancedProductReviewDataTable = ({
                       ) : (
                         <span className="text-sm text-ui-fg-muted">No response</span>
                       )}
+                    </Table.Cell>
+                  )}
+                  {showColumns.includes('verified') && (
+                    <Table.Cell>
+                      {getVerifiedBadge(review)}
                     </Table.Cell>
                   )}
 

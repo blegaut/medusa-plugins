@@ -33,6 +33,7 @@ export const defaultAdminProductReviewFields = [
   'email',
   'content',
   'order_id',
+  'verified',
   'created_at',
   'updated_at',
   'response.*',

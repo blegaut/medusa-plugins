@@ -1,8 +1,8 @@
 {
-  "name": "@nakamotosbutt/medusa-product-reviews-enhanced",
-  "version": "1.4.1",
+  "name": "@blegaut/medusa-product-reviews-enhanced",
+  "version": "1.4.12",
   "description": "Enhanced Product Reviews Plugin for Medusa with advanced filtering, pagination and admin UI",
-  "author": "nakamotosbutt",
+  "author": "blegaut",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -98,9 +98,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "3.4.2",
-    "@lambdacurry/medusa-plugins-sdk": "0.0.5",
     "@medusajs/js-sdk": "^2.10.3",
     "@medusajs/workflows-sdk": "^2.10.3",
-    "luxon": "^3.5.0"
+    "luxon": "^3.5.0",
+    "react-player": "^3.3.3"
   }
 }

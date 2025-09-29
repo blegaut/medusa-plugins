@@ -21,6 +21,7 @@ interface CalculatedProductReviewStats {
 
 export interface ModuleOptions {
   defaultReviewStatus?: 'pending' | 'approved' | 'flagged';
+  prefixUrl?: string;
 }
 
 class ProductReviewService extends MedusaService({
@@ -30,11 +31,13 @@ class ProductReviewService extends MedusaService({
   ProductReviewStats: ProductReviewStatsModel,
 }) {
   public readonly defaultReviewStatus: string
+  public readonly prefixUrl: string
 
   constructor(container, options: ModuleOptions) {
     super(container, options);
 
     this.defaultReviewStatus = options?.defaultReviewStatus || 'approved';
+    this.prefixUrl = options?.prefixUrl || 'https://papapo-storage.s3.us-east-1.amazonaws.com/';
   }
 
   async refreshProductReviewStats(productIds: string[], sharedContext?: Context): Promise<ProductReviewStats[]> {

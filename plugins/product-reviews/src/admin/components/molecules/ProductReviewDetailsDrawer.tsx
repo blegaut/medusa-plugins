@@ -1,7 +1,8 @@
-import type { AdminProductReview } from '../../sdk/types';
 import { Button, Drawer, Text } from '@medusajs/ui';
 import { DateTime } from 'luxon';
+import ReactPlayer from "react-player";
 import { Link } from 'react-router-dom';
+import type { AdminProductReview } from '../../../sdk/types';
 import { ReviewStars } from '../atoms/review-stars';
 import { SectionRow } from '../atoms/section-row';
 
@@ -18,7 +19,9 @@ export const ProductReviewDetailsDrawer = ({
 
   const ProductValue = () => (
     <div className="flex items-center gap-4">
-      {review.product.thumbnail ? (
+      {review.product && (
+        <>
+          {review.product.thumbnail ? (
         <img
           className="h-12 w-12 flex-shrink-0 rounded-md"
           src={review.product.thumbnail}
@@ -30,14 +33,22 @@ export const ProductReviewDetailsDrawer = ({
       <Link to={`/products/${review.product.id}`}>
         <Text className="hover:underline">{review.product.title}</Text>
       </Link>
+        </>
+      )}
     </div>
   );
 
-  const OrderValue = () => (
-    <Link to={`/orders/${review.order.id}`}>
-      <Text className="hover:underline">#{review.order.display_id}</Text>
-    </Link>
-  );
+  const OrderValue = () => {
+    if (!review.order) {
+      return <Text className="text-ui-fg-subtle text-sm">No order</Text>;
+    }
+    
+    return (
+      <Link to={`/orders/${review.order.id}`}>
+        <Text className="hover:underline">#{review.order.display_id}</Text>
+      </Link>
+    );
+  };
 
   const StatusValue = () => (
     <Text className="text-ui-fg-subtle text-sm">{review.status}</Text>
@@ -62,13 +73,31 @@ export const ProductReviewDetailsDrawer = ({
   );
 
   const ImagesValue = () => (
-    <div className="grid grid-cols-3 gap-2">
-      {review.images.map((image, index) => (
-        <img
-          src={image.url}
-          alt={`Review image ${index + 1}`}
-          className="w-full h-full object-cover"
-        />
+    <div className="grid grid-cols-3 gap-2 w-full">
+      {review.images && review.images.map((media, index) => (
+        <div
+        key={media.id}
+        className="relative flex h-40 items-center justify-center rounded-md bg-white text-sm font-medium uppercase text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring focus:ring-opacity-50 focus:ring-offset-4 focus:ring-papapogreen-light-1"
+      >
+
+        <>
+          <span className="absolute inset-0 overflow-hidden rounded-md">
+            {media.type.startsWith('image') && (<img
+              src={media.url}
+              alt=""
+              className="h-full w-full object-cover object-center"
+              sizes="(max-width: 768px) 25vw, (max-width: 1200px) 15w, 15vw"
+            />)}
+            {media.type.startsWith('video') && (<ReactPlayer
+              src={media.url}
+              controls={true}
+              width={'100%'}
+              height={'100%'}
+
+            />)}
+          </span>
+        </>
+      </div>
       ))}
     </div>
   );

@@ -6,6 +6,7 @@ import { adminProductReviewResponseRouteMiddlewares } from './admin/product-revi
 import { storeProductReviewUploadsMiddlewares } from './store/product-reviews/uploads/middlewares';
 import { storeProductReviewStatRoutesMiddlewares } from './store/product-review-stats/middlewares';
 import { adminProductReviewStatusRoutesMiddlewares } from './admin/product-reviews/[id]/status/middlewares';
+import { adminProductReviewVerifiedRoutesMiddlewares } from './admin/product-reviews/[id]/verified/middlewares';
 
 export default defineMiddlewares({
   routes: [
@@ -13,6 +14,7 @@ export default defineMiddlewares({
     ...adminProductReviewStatRoutesMiddlewares,
     ...adminProductReviewResponseRouteMiddlewares,
     ...adminProductReviewStatusRoutesMiddlewares,
+    ...adminProductReviewVerifiedRoutesMiddlewares,
 
     // Store
     ...storeProductReviewUploadsMiddlewares,

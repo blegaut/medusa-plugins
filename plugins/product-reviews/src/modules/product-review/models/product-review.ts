@@ -16,6 +16,7 @@ export const ProductReviewModel = model
     images: model.hasMany(() => ProductReviewImageModel),
     response: model.hasOne(() => ProductReviewResponseModel, { nullable: true }).nullable(),
     status: model.enum(['pending', 'approved', 'flagged']).default('pending'),
+    verified: model.boolean().default(false),
   })
   .indexes([
     {

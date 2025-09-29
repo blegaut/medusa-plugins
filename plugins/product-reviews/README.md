@@ -59,7 +59,7 @@ yarn medusa db:migrate
 
 ## Using the Plugin SDK
 
-> For detailed SDK setup and configuration, refer to the [@lambdacurry/medusa-plugins-sdk README](../packages/plugins-sdk/README.md).
+The plugin provides a built-in SDK for both store and admin operations using Medusa's native HTTP client.
 
 ### Store Operations
 
