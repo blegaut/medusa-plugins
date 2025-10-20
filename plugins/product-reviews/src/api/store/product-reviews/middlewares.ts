@@ -1,8 +1,8 @@
-import { type MiddlewareRoute, validateAndTransformBody, validateAndTransformQuery, MedusaRequest, MedusaResponse, MedusaNextFunction } from '@medusajs/framework';
+import { MedusaNextFunction, MedusaRequest, MedusaResponse, type MiddlewareRoute, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework';
 import { createFindParams, createOperatorMap } from '@medusajs/medusa/api/utils/validators';
+import { QueryConfig } from '@medusajs/types';
 import { z } from 'zod';
 import { ProductReview } from '../../../modules/product-review/types/common';
-import { QueryConfig } from '@medusajs/types';
 
 const reviewStatuses = z.enum(['pending', 'approved', 'flagged'])
 
@@ -21,6 +21,23 @@ export const listStoreProductReviewsQuerySchema = createFindParams({
   }),
 );
 
+export const listStoreProductReviewsRandomQuerySchema = createFindParams({
+  offset: 0,
+  limit: 50,
+}).merge(
+  z.object({
+    id: z.union([z.string(), z.array(z.string())]).optional(),
+    status: z.union([reviewStatuses, z.array(reviewStatuses)]).optional(),
+    product_id: z.union([z.string(), z.array(z.string())]).optional(),
+    order_id: z.union([z.string(), z.array(z.string())]).optional(),
+    rating: z.union([z.number().max(5).min(1), z.array(z.number().max(5).min(1))]).optional(),
+    created_at: createOperatorMap().optional(),
+    updated_at: createOperatorMap().optional(),
+    withImages: z.coerce.number().min(0).max(10).optional(),
+    total: z.coerce.number().min(1).max(20).optional(),
+  }),
+);
+
 export const upsertProductReviewsSchema = z.object({
   reviews: z.array(
     z.object({
@@ -32,6 +49,8 @@ export const upsertProductReviewsSchema = z.object({
     }),
   ),
 });
+
+
 
 export type UpsertProductReviewsSchema = z.infer<typeof upsertProductReviewsSchema>;
 
@@ -141,5 +160,10 @@ export const storeProductReviewRoutesMiddlewares: MiddlewareRoute[] = [
       preventDuplicateReviews,
       validateAndTransformBody(upsertProductReviewsSchema)
     ],
+  },
+  {
+    matcher: '/store/product-reviews/random',
+    method: 'GET',
+    middlewares: [validateAndTransformQuery(listStoreProductReviewsRandomQuerySchema, defaultStoreReviewsQueryConfig)],
   },
 ];
