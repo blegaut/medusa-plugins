@@ -8,6 +8,7 @@ export const ProductReviewModel = model
     name: model.text().searchable().nullable(),
     email: model.text().nullable(),
     rating: model.number(),
+    title: model.text().searchable().nullable(),
     content: model.text().searchable().nullable(),
     order_line_item_id: model.text().nullable(),
     product_id: model.text().nullable(),

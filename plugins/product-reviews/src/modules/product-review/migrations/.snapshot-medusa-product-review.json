@@ -42,6 +42,15 @@
           "nullable": false,
           "mappedType": "integer"
         },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
         "content": {
           "name": "content",
           "type": "text",

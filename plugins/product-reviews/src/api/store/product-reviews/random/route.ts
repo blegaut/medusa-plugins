@@ -27,7 +27,7 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   const { data: product_reviews, metadata = { count: 0, skip: 0, take: 0 } } = await query.graph({
     entity: 'product_review',
     ...req.queryConfig,
-    fields: ["id","content","name","created_at","rating","images.*","product.title","product.handle"],
+    fields: ["id","content","name","title","created_at","rating","images.*","product.title","product.handle"],
     filters: {
       ...filterableFields,
       // Only return approved reviews by default unless status is explicitly provided
