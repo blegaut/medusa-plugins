@@ -44,6 +44,7 @@ export const upsertProductReviewsSchema = z.object({
       order_id: z.string(),
       order_line_item_id: z.string(),
       rating: z.number().max(5).min(1),
+      title: z.string(),
       content: z.string(),
       images: z.array(z.object({ url: z.string() })),
     }),
