@@ -3,9 +3,9 @@
   "author": "Lambda Curry (https://lambdacurry.dev)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lambda-curry/medusa-plugins"
+    "url": "https://github.com/blegaut/medusa-plugins"
   },
-  "homepage": "https://github.com/lambda-curry/medusa-plugins",
+  "homepage": "https://github.com/blegaut/medusa-plugins",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev"
