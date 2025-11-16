@@ -1,6 +1,6 @@
 {
   "name": "@blegaut/medusa-product-reviews-enhanced",
-  "version": "1.4.29",
+  "version": "1.4.30",
   "description": "Enhanced Product Reviews Plugin for Medusa with advanced filtering, pagination and admin UI",
   "author": "blegaut",
   "license": "MIT",
