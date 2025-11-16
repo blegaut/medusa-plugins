@@ -24,40 +24,67 @@ const ProductReviewsPage = () => {
   // Refresh all product review stats and revalidate storefront cache
   const handleRefreshStats = async () => {
     setIsRefreshing(true);
+    console.log('[Reviews] Starting refresh stats process...');
+    
     try {
       // Step 1: Refresh stats in database
+      console.log('[Reviews] Refreshing stats in database...');
       const data = await productReviewClient.admin.productReviewStats.refresh();
+      console.log('[Reviews] Stats refreshed:', data);
 
       // Step 2: Revalidate storefront product pages cache
       const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://dev.v2.papapo.shoes';
       const revalidationSecret = process.env.REVALIDATION_SECRET;
 
+      console.log('[Reviews] Storefront URL:', storefrontUrl);
+      console.log('[Reviews] Has revalidation secret:', !!revalidationSecret);
+
       if (revalidationSecret) {
         try {
-          const revalidateResponse = await fetch(
-            `${storefrontUrl}/api/revalidate?secret=${revalidationSecret}&tag=products`,
-            { method: 'POST' }
-          );
+          const revalidateUrl = `${storefrontUrl}/api/revalidate?secret=${revalidationSecret}&tag=products`;
+          console.log('[Reviews] Calling revalidation API...');
+          
+          const revalidateResponse = await fetch(revalidateUrl, { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const revalidateData = await revalidateResponse.json();
+          console.log('[Reviews] Revalidation response:', revalidateResponse.status, revalidateData);
 
           if (!revalidateResponse.ok) {
-            console.warn('Failed to revalidate storefront cache:', await revalidateResponse.text());
-            // Don't fail the whole operation, just warn
+            console.warn('[Reviews] Failed to revalidate storefront cache:', revalidateData);
+            toast.warning('Cache Clear Failed', {
+              description: `Stats updated but cache clearing failed: ${revalidateData.message || 'Unknown error'}`,
+            });
+          } else {
+            console.log('[Reviews] ✅ Cache cleared successfully!');
+            toast.success('Success', {
+              description: `Refreshed stats for ${data.refreshed} products and cleared cache`,
+            });
           }
         } catch (revalidateError) {
-          console.warn('Failed to revalidate storefront cache:', revalidateError);
-          // Don't fail the whole operation, just warn
+          console.error('[Reviews] Revalidation error:', revalidateError);
+          toast.warning('Cache Clear Error', {
+            description: `Stats updated but cache clearing failed: ${revalidateError.message}`,
+          });
         }
+      } else {
+        console.warn('[Reviews] No REVALIDATION_SECRET found, skipping cache clear');
+        toast.warning('Partial Success', {
+          description: `Refreshed stats for ${data.refreshed} products (cache not cleared - missing secret)`,
+        });
       }
-
-      toast.success('Success', {
-        description: data.message || `Refreshed stats for ${data.refreshed} products and cleared cache`,
-      });
     } catch (error: any) {
+      console.error('[Reviews] Error refreshing stats:', error);
       toast.error('Error', {
         description: error.message || 'Failed to refresh review statistics',
       });
     } finally {
       setIsRefreshing(false);
+      console.log('[Reviews] Refresh stats process completed');
     }
   };
 
