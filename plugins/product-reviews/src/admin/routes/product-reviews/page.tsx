@@ -21,14 +21,36 @@ const ProductReviewsPage = () => {
   const { data: productsData } = useAdminProducts({ limit: 100 });
   const products = productsData?.products || [];
 
-  // Refresh all product review stats
+  // Refresh all product review stats and revalidate storefront cache
   const handleRefreshStats = async () => {
     setIsRefreshing(true);
     try {
+      // Step 1: Refresh stats in database
       const data = await productReviewClient.admin.productReviewStats.refresh();
 
+      // Step 2: Revalidate storefront product pages cache
+      const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://dev.v2.papapo.shoes';
+      const revalidationSecret = process.env.REVALIDATION_SECRET;
+
+      if (revalidationSecret) {
+        try {
+          const revalidateResponse = await fetch(
+            `${storefrontUrl}/api/revalidate?secret=${revalidationSecret}&tag=products`,
+            { method: 'POST' }
+          );
+
+          if (!revalidateResponse.ok) {
+            console.warn('Failed to revalidate storefront cache:', await revalidateResponse.text());
+            // Don't fail the whole operation, just warn
+          }
+        } catch (revalidateError) {
+          console.warn('Failed to revalidate storefront cache:', revalidateError);
+          // Don't fail the whole operation, just warn
+        }
+      }
+
       toast.success('Success', {
-        description: data.message || `Refreshed stats for ${data.refreshed} products`,
+        description: data.message || `Refreshed stats for ${data.refreshed} products and cleared cache`,
       });
     } catch (error: any) {
       toast.error('Error', {
@@ -163,8 +185,7 @@ const ProductReviewsPage = () => {
             <DatePicker
               value={dateFrom}
               onChange={setDateFrom}
-              placeholder="Select start date"
-              showTimePicker={false}
+              granularity="day"
             />
           </div>
 
@@ -174,8 +195,7 @@ const ProductReviewsPage = () => {
             <DatePicker
               value={dateTo}
               onChange={setDateTo}
-              placeholder="Select end date"
-              showTimePicker={false}
+              granularity="day"
             />
           </div>
 
