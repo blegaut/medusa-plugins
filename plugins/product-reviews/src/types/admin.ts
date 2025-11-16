@@ -75,6 +75,16 @@ export interface AdminUpdateProductReviewResponseDTO {
   content: string;
 }
 
+export interface RefreshStatsRequest {
+  product_ids?: string[];
+}
+
+export interface RefreshStatsResponse {
+  message: string;
+  refreshed: number;
+  product_ids: string[];
+}
+
 // SDK interface for backward compatibility
 export interface ProductReviewSDK {
   admin: {
@@ -88,6 +98,9 @@ export interface ProductReviewSDK {
       createResponse(reviewId: string, body: AdminCreateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
       updateResponse(reviewId: string, body: AdminUpdateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
       deleteResponse(reviewId: string): Promise<{ product_review: AdminProductReview }>;
+    };
+    productReviewStats: {
+      refresh(body?: RefreshStatsRequest): Promise<RefreshStatsResponse>;
     };
   };
 }

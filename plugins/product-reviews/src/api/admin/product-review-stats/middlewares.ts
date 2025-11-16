@@ -1,4 +1,4 @@
-import { type MiddlewareRoute, validateAndTransformQuery } from '@medusajs/framework';
+import { type MiddlewareRoute, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework';
 import { createFindParams, createOperatorMap } from '@medusajs/medusa/api/utils/validators';
 import { z } from 'zod';
 
@@ -14,6 +14,10 @@ export const listAdminProductReviewStatsQuerySchema = createFindParams({
     updated_at: createOperatorMap().optional(),
   }),
 );
+
+export const refreshProductReviewStatsSchema = z.object({
+  product_ids: z.array(z.string()).optional(),
+});
 
 export const defaultAdminProductReviewStatFields = [
   'id',
@@ -41,6 +45,13 @@ export const adminProductReviewStatRoutesMiddlewares: MiddlewareRoute[] = [
     method: 'GET',
     middlewares: [
       validateAndTransformQuery(listAdminProductReviewStatsQuerySchema, defaultProductReviewStatsQueryConfig),
+    ],
+  },
+  {
+    matcher: '/admin/product-review-stats',
+    method: 'POST',
+    middlewares: [
+      validateAndTransformBody(refreshProductReviewStatsSchema),
     ],
   },
 ];

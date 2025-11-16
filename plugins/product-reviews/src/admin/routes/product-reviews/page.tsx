@@ -1,9 +1,10 @@
 import { defineRouteConfig } from '@medusajs/admin-sdk';
 import { Star } from '@medusajs/icons';
-import { Container, Heading, Select, Input, DatePicker, Button } from '@medusajs/ui';
-import { useState, useEffect } from 'react';
+import { Button, Container, DatePicker, Heading, Input, Select, toast } from '@medusajs/ui';
+import { useEffect, useState } from 'react';
 import { EnhancedProductReviewDataTable } from '../../components/molecules/EnhancedProductReviewDataTable';
 import { useAdminProducts } from '../../hooks/products';
+import { productReviewClient } from '../../lib/client';
 
 const ProductReviewsPage = () => {
   const [productFilter, setProductFilter] = useState<string>('all');
@@ -13,11 +14,30 @@ const ProductReviewsPage = () => {
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const pageSize = 10; // Fixed 10 items per page
 
   // Fetch products for filter dropdown
   const { data: productsData } = useAdminProducts({ limit: 100 });
   const products = productsData?.products || [];
+
+  // Refresh all product review stats
+  const handleRefreshStats = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await productReviewClient.admin.productReviewStats.refresh();
+
+      toast.success('Success', {
+        description: data.message || `Refreshed stats for ${data.refreshed} products`,
+      });
+    } catch (error: any) {
+      toast.error('Error', {
+        description: error.message || 'Failed to refresh review statistics',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Build query based on filters
   const query: any = {
@@ -51,13 +71,23 @@ const ProductReviewsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-ui-bg-subtle">
-          <Star className="h-5 w-5 text-ui-fg-subtle" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-ui-bg-subtle">
+            <Star className="h-5 w-5 text-ui-fg-subtle" />
+          </div>
+          <Heading level="h1" className="text-ui-fg-base">
+            Product Reviews
+          </Heading>
         </div>
-        <Heading level="h1" className="text-ui-fg-base">
-          Product Reviews
-        </Heading>
+        <Button
+          variant="secondary"
+          size="small"
+          onClick={handleRefreshStats}
+          isLoading={isRefreshing}
+        >
+          Refresh Stats
+        </Button>
       </div>
 
       {/* Filter Section */}

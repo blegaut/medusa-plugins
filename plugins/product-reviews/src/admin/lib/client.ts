@@ -7,6 +7,8 @@ import type {
   AdminProductReviewResponse,
   AdminUpdateProductReviewResponseDTO,
   ProductReviewSDK,
+  RefreshStatsRequest,
+  RefreshStatsResponse,
 } from '../../types/admin';
 
 declare const __BACKEND_URL__: string | undefined;
@@ -82,6 +84,15 @@ export const productReviewClient: ProductReviewSDK = {
       async deleteResponse(reviewId: string): Promise<{ product_review: AdminProductReview }> {
         return medusaClient.client.fetch(`/admin/product-reviews/${reviewId}/response`, {
           method: 'DELETE',
+        });
+      },
+    },
+    
+    productReviewStats: {
+      async refresh(body?: RefreshStatsRequest): Promise<RefreshStatsResponse> {
+        return medusaClient.client.fetch('/admin/product-review-stats', {
+          method: 'POST',
+          body,
         });
       },
     },

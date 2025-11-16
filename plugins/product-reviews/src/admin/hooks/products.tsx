@@ -1,5 +1,4 @@
 import { HttpTypes } from "@medusajs/framework/types";
-import { FetchError } from "@medusajs/js-sdk";
 import { medusa } from "../lib/client";
 import { useApiCall } from "../utils/use-api-call";
 
