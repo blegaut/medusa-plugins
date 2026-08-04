@@ -64,6 +64,22 @@ export const EnhancedProductReviewDataTable = ({
   const reviews = data?.product_reviews ?? [];
   const totalCount = data?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
+  const currentPageReviewIds = reviews.map((review) => review.id);
+  const allCurrentPageSelected =
+    currentPageReviewIds.length > 0 &&
+    currentPageReviewIds.every((id) => selectedIds.includes(id));
+  const someCurrentPageSelected =
+    !allCurrentPageSelected &&
+    currentPageReviewIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelectAllOnPage = () => {
+    if (allCurrentPageSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !currentPageReviewIds.includes(id)));
+      return;
+    }
+
+    setSelectedIds((prev) => [...new Set([...prev, ...currentPageReviewIds])]);
+  };
 
   const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -223,7 +239,22 @@ export const EnhancedProductReviewDataTable = ({
         <Table className="min-w-[1200px] w-full">
           <Table.Header>
             <Table.Row>
-              {showColumns.includes('select') && <Table.HeaderCell className="w-10" />}
+              {showColumns.includes('select') && (
+                <Table.HeaderCell className="w-10">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all reviews on this page"
+                    checked={allCurrentPageSelected}
+                    ref={(input) => {
+                      if (input) {
+                        input.indeterminate = someCurrentPageSelected;
+                      }
+                    }}
+                    onChange={toggleSelectAllOnPage}
+                    disabled={!currentPageReviewIds.length}
+                  />
+                </Table.HeaderCell>
+              )}
               {showColumns.includes('product') && <Table.HeaderCell className="min-w-[180px]">Product</Table.HeaderCell>}
               {showColumns.includes('rating') && <Table.HeaderCell className="w-28">Rating</Table.HeaderCell>}
               {showColumns.includes('audio') && <Table.HeaderCell className="min-w-[9.5rem]">Audio</Table.HeaderCell>}
