@@ -1,20 +1,31 @@
-import { Button, Drawer, Text } from '@medusajs/ui';
+import { Button, Drawer, Select, Text, toast } from '@medusajs/ui';
 import { DateTime } from 'luxon';
 import ReactPlayer from "react-player";
 import { Link } from 'react-router-dom';
 import type { AdminProductReview } from '../../../sdk/types';
 import { ReviewStars } from '../atoms/review-stars';
 import { SectionRow } from '../atoms/section-row';
+import {
+  useAdminGenerateReviewAudioMutation,
+  useAdminUpdateProductReviewLanguageMutation,
+  useAdminUpdateProductReviewVoiceGenderMutation,
+} from '../../hooks/product-review';
 
 export const ProductReviewDetailsDrawer = ({
   review,
   open,
   setOpen,
+  onReviewUpdated,
 }: {
   review: AdminProductReview | null;
   open: boolean;
   setOpen: (open: boolean) => void;
+  onReviewUpdated?: (review: AdminProductReview) => void;
 }) => {
+  const { mutateSingle: generateAudio, isPending: isGenerating } = useAdminGenerateReviewAudioMutation();
+  const { mutate: updateLanguage } = useAdminUpdateProductReviewLanguageMutation();
+  const { mutate: updateVoiceGender } = useAdminUpdateProductReviewVoiceGenderMutation();
+
   if (!review) return null;
 
   const ProductValue = () => (
@@ -66,6 +77,12 @@ export const ProductReviewDetailsDrawer = ({
     </div>
   );
 
+  const TitleValue = () => (
+    <Text className="whitespace-pre-wrap">
+      {review.title?.trim() || '—'}
+    </Text>
+  );
+
   const ReviewContent = () => (
     <div className="flex flex-col gap-2">
       <Text className="whitespace-pre-wrap">{review.content}</Text>
@@ -110,12 +127,13 @@ export const ProductReviewDetailsDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <Drawer.Content>
-        <Drawer.Header>
+      <Drawer.Content className="flex max-h-[96vh] flex-col">
+        <Drawer.Header className="shrink-0">
           <Drawer.Title className="font-medium">Review Details</Drawer.Title>
         </Drawer.Header>
 
-        <Drawer.Body className="flex flex-col divide-y">
+        <Drawer.Body className="min-h-0 flex-1 overflow-y-auto">
+          <div className="flex flex-col divide-y">
           <SectionRow title="Customer" value={<CustomerValue />} />
           <SectionRow title="Status" value={<StatusValue />} />
           <SectionRow title="Created At" value={<CreatedAtValue />} />
@@ -125,8 +143,69 @@ export const ProductReviewDetailsDrawer = ({
             title="Rating"
             value={<ReviewStars rating={review.rating} />}
           />
+          <SectionRow title="Title" value={<TitleValue />} />
           <SectionRow title="Review" value={<ReviewContent />} />
-          {review.images.length > 0 && (
+          <SectionRow
+            title="Audio language"
+            value={
+              <Select
+                value={review.language || 'es'}
+                onValueChange={async (language) => {
+                  const result = await updateLanguage(review.id, language);
+                  onReviewUpdated?.(result.product_review);
+                  toast.success('Language updated');
+                }}
+              >
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="es">ES</Select.Item>
+                  <Select.Item value="en">EN</Select.Item>
+                </Select.Content>
+              </Select>
+            }
+          />
+          <SectionRow
+            title="Voice gender"
+            value={
+              <Select
+                value={review.voice_gender || 'female'}
+                onValueChange={async (voice_gender) => {
+                  const result = await updateVoiceGender(review.id, voice_gender as 'female' | 'male');
+                  onReviewUpdated?.(result.product_review);
+                  toast.success('Voice gender updated');
+                }}
+              >
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="female">Female</Select.Item>
+                  <Select.Item value="male">Male</Select.Item>
+                </Select.Content>
+              </Select>
+            }
+          />
+          {review.audio_url && review.audio_status === 'ready' && (
+            <SectionRow
+              title="Audio preview"
+              value={<audio controls src={review.audio_url} className="w-full" />}
+            />
+          )}
+          <SectionRow
+            title="Generate audio"
+            value={
+              <Button
+                size="small"
+                isLoading={isGenerating}
+                onClick={async () => {
+                  const result = await generateAudio(review.id);
+                  onReviewUpdated?.(result.product_review);
+                  toast.success('Audio generated');
+                }}
+              >
+                Generate MP3
+              </Button>
+            }
+          />
+          {(review.images?.length || 0) > 0 && (
             <SectionRow title="Images" value={<ImagesValue />} />
           )}
 
@@ -148,9 +227,10 @@ export const ProductReviewDetailsDrawer = ({
               }
             />
           )}
+          </div>
         </Drawer.Body>
 
-        <Drawer.Footer>
+        <Drawer.Footer className="shrink-0 border-t border-ui-border-base">
           <Drawer.Close asChild>
             <Button variant="secondary">Close</Button>
           </Drawer.Close>

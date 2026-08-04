@@ -16,6 +16,12 @@ export interface AdminProductReview {
   approved_by?: string | null;
   status: ProductReviewStatus;
   verified: boolean;
+  audio_url?: string | null;
+  audio_status?: 'pending' | 'ready' | 'failed' | null;
+  featured_for_audio?: boolean;
+  audio_generated_at?: Date | string | null;
+  language?: string | null;
+  voice_gender?: 'female' | 'male';
   created_at: Date | string;
   updated_at: Date | string;
   deleted_at?: Date | string | null;
@@ -94,6 +100,11 @@ export interface ProductReviewSDK {
       update(id: string, data: AdminUpdateProductReviewRequest): Promise<{ product_review: AdminProductReview }>;
       updateStatus(id: string, status: string): Promise<{ product_review: AdminProductReview }>;
       updateVerified(id: string, verified: boolean): Promise<{ product_review: AdminProductReview }>;
+      updateFeaturedForAudio(id: string, featured: boolean): Promise<{ product_review: AdminProductReview }>;
+      updateLanguage(id: string, language: string): Promise<{ product_review: AdminProductReview }>;
+      updateVoiceGender(id: string, voice_gender: 'female' | 'male'): Promise<{ product_review: AdminProductReview }>;
+      generateAudio(id: string): Promise<{ product_review: AdminProductReview }>;
+      generateAudioBatch(reviewIds: string[]): Promise<{ results: Array<{ review_id: string; status: string; error?: string }> }>;
       delete(id: string): Promise<void>;
       createResponse(reviewId: string, body: AdminCreateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
       updateResponse(reviewId: string, body: AdminUpdateProductReviewResponseDTO): Promise<{ product_review_response: AdminProductReviewResponse }>;
@@ -101,6 +112,12 @@ export interface ProductReviewSDK {
     };
     productReviewStats: {
       refresh(body?: RefreshStatsRequest): Promise<RefreshStatsResponse>;
+    };
+    products: {
+      updateReviewAudioConfig(
+        productId: string,
+        body: { voices?: Record<string, { female?: string; male?: string }>; default_language?: string },
+      ): Promise<{ product: unknown }>;
     };
   };
 }

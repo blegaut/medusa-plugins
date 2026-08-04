@@ -7,6 +7,11 @@ import { storeProductReviewUploadsMiddlewares } from './store/product-reviews/up
 import { storeProductReviewStatRoutesMiddlewares } from './store/product-review-stats/middlewares';
 import { adminProductReviewStatusRoutesMiddlewares } from './admin/product-reviews/[id]/status/middlewares';
 import { adminProductReviewVerifiedRoutesMiddlewares } from './admin/product-reviews/[id]/verified/middlewares';
+import { adminProductReviewFeaturedForAudioRoutesMiddlewares } from './admin/product-reviews/[id]/featured-for-audio/middlewares';
+import { adminProductReviewLanguageRoutesMiddlewares } from './admin/product-reviews/[id]/language/middlewares';
+import { adminProductReviewVoiceGenderRoutesMiddlewares } from './admin/product-reviews/[id]/voice-gender/middlewares';
+import { adminBatchGenerateReviewAudioRoutesMiddlewares } from './admin/product-reviews/generate-audio/middlewares';
+import { adminProductReviewAudioConfigRoutesMiddlewares } from './admin/products/[id]/review-audio-config/middlewares';
 
 export default defineMiddlewares({
   routes: [
@@ -15,6 +20,11 @@ export default defineMiddlewares({
     ...adminProductReviewResponseRouteMiddlewares,
     ...adminProductReviewStatusRoutesMiddlewares,
     ...adminProductReviewVerifiedRoutesMiddlewares,
+    ...adminProductReviewFeaturedForAudioRoutesMiddlewares,
+    ...adminProductReviewLanguageRoutesMiddlewares,
+    ...adminProductReviewVoiceGenderRoutesMiddlewares,
+    ...adminBatchGenerateReviewAudioRoutesMiddlewares,
+    ...adminProductReviewAudioConfigRoutesMiddlewares,
 
     // Store
     ...storeProductReviewUploadsMiddlewares,

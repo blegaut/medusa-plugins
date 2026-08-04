@@ -61,10 +61,16 @@ export const defaultStoreProductReviewFields = [
   'product_id',
   'variant_id',  // Added to include variant_id by default
   'name',
+  'title',
   'rating',
   'content',
   'created_at',
   'updated_at',
+  'featured_for_audio',
+  'language',
+  'voice_gender',
+  'audio_url',
+  'audio_status',
   'response.*',
   'images.*'
   // Removed variant relation fields - link not working yet
@@ -76,10 +82,17 @@ export const allowedStoreProductReviewFields = [
   'product_id',
   'variant_id',  // Allow variant_id in queries
   'name',
+  'title',
   'rating',
   'content',
   'created_at',
   'updated_at',
+  'featured_for_audio',
+  'language',
+  'voice_gender',
+  'audio_url',
+  'audio_status',
+  'audio_generated_at',
   'response',
   'images',
   'product.*'

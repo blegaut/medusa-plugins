@@ -8,6 +8,8 @@ import {
   ProductReviewStatsModel,
 } from './models';
 import { ProductReviewStats } from './types';
+import type { ReviewAudioModuleOptions, VoiceGender, VoiceMap } from '../../types/voice';
+
 interface CalculatedProductReviewStats {
   product_id: string;
   review_count: number;
@@ -19,7 +21,7 @@ interface CalculatedProductReviewStats {
   rating_count_5: number;
 }
 
-export interface ModuleOptions {
+export interface ModuleOptions extends ReviewAudioModuleOptions {
   defaultReviewStatus?: 'pending' | 'approved' | 'flagged';
   prefixUrl?: string;
 }
@@ -32,12 +34,22 @@ class ProductReviewService extends MedusaService({
 }) {
   public readonly defaultReviewStatus: string
   public readonly prefixUrl: string
+  public readonly options: ModuleOptions
+  public readonly elevenlabsApiKey?: string
+  public readonly defaultLanguage: string
+  public readonly defaultVoiceGender: VoiceGender
+  public readonly voices: VoiceMap
 
   constructor(container, options: ModuleOptions) {
     super(container, options);
 
+    this.options = options || {};
     this.defaultReviewStatus = options?.defaultReviewStatus || 'approved';
     this.prefixUrl = options?.prefixUrl || 'https://papapo-storage.s3.us-east-1.amazonaws.com/';
+    this.elevenlabsApiKey = options?.elevenlabsApiKey;
+    this.defaultLanguage = options?.defaultLanguage || 'es';
+    this.defaultVoiceGender = options?.defaultVoiceGender || 'female';
+    this.voices = options?.voices || {};
   }
 
   async refreshProductReviewStats(productIds: string[], sharedContext?: Context): Promise<ProductReviewStats[]> {

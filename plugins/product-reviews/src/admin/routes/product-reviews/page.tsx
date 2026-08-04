@@ -215,8 +215,10 @@ const ProductReviewsPage = () => {
         onPageChange={setCurrentPage}
         pageSize={pageSize}
         showColumns={[
+          'select',
           'product',
           'rating',
+          'audio',
           'status',
           'created_at',
           'customer',
@@ -224,7 +226,7 @@ const ProductReviewsPage = () => {
           'images',
           'response',
           'verified',
-          'actions'
+          'actions',
         ]}
       />
     </div>
