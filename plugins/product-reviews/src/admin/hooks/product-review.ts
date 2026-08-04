@@ -7,7 +7,10 @@ import {
 } from '../../types/admin';
 import { sdk } from '../lib/client';
 
-export const useAdminListProductReviews = (query: AdminListProductReviewsQuery) => {
+export const useAdminListProductReviews = (
+  query: AdminListProductReviewsQuery,
+  refreshKey = 0,
+) => {
   const [data, setData] = useState<AdminListProductReviewsResponse | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -39,7 +42,7 @@ export const useAdminListProductReviews = (query: AdminListProductReviewsQuery) 
     return () => {
       isCancelled = true;
     };
-  }, [JSON.stringify(query)]);
+  }, [JSON.stringify(query), refreshKey]);
 
   return { data, isLoading, error };
 };
@@ -157,3 +160,93 @@ export const useAdminUpdateProductReviewResponseMutation = (reviewId: string) =>
 
     return { mutate, isPending, error };
   };
+
+export const useAdminUpdateProductReviewFeaturedForAudioMutation = () => {
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const mutate = useCallback(async (
+    { reviewId, featured }: { reviewId: string; featured: boolean },
+    options?: { onSuccess?: () => void; onError?: (error: Error) => void },
+  ) => {
+    setIsPending(true);
+    setError(null);
+    try {
+      const result = await sdk.admin.productReviews.updateFeaturedForAudio(reviewId, featured);
+      options?.onSuccess?.();
+      return result;
+    } catch (err) {
+      const e = err as Error;
+      setError(e);
+      options?.onError?.(e);
+      throw e;
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  return { mutate, isPending, error };
+};
+
+export const useAdminGenerateReviewAudioMutation = () => {
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const mutateSingle = useCallback(async (reviewId: string) => {
+    setIsPending(true);
+    setError(null);
+    try {
+      return await sdk.admin.productReviews.generateAudio(reviewId);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  const mutateBatch = useCallback(async (reviewIds: string[]) => {
+    setIsPending(true);
+    setError(null);
+    try {
+      return await sdk.admin.productReviews.generateAudioBatch(reviewIds);
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  return { mutateSingle, mutateBatch, isPending, error };
+};
+
+export const useAdminUpdateProductReviewLanguageMutation = () => {
+  const [isPending, setIsPending] = useState(false);
+
+  const mutate = useCallback(async (reviewId: string, language: string) => {
+    setIsPending(true);
+    try {
+      return await sdk.admin.productReviews.updateLanguage(reviewId, language);
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  return { mutate, isPending };
+};
+
+export const useAdminUpdateProductReviewVoiceGenderMutation = () => {
+  const [isPending, setIsPending] = useState(false);
+
+  const mutate = useCallback(async (reviewId: string, voice_gender: 'female' | 'male') => {
+    setIsPending(true);
+    try {
+      return await sdk.admin.productReviews.updateVoiceGender(reviewId, voice_gender);
+    } finally {
+      setIsPending(false);
+    }
+  }, []);
+
+  return { mutate, isPending };
+};

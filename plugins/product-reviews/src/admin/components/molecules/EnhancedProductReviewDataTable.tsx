@@ -2,7 +2,7 @@ import { ChatBubble, Eye, CheckCircle, XCircle, Clock } from '@medusajs/icons';
 import { Button, Table, Badge, Input } from '@medusajs/ui';
 import { DateTime } from 'luxon';
 import React, { useState } from 'react';
-import { useAdminListProductReviews, useAdminUpdateProductReviewStatusMutation, useAdminUpdateProductReviewVerifiedMutation } from '../../hooks/product-review';
+import { useAdminListProductReviews, useAdminUpdateProductReviewStatusMutation, useAdminUpdateProductReviewVerifiedMutation, useAdminUpdateProductReviewFeaturedForAudioMutation, useAdminGenerateReviewAudioMutation } from '../../hooks/product-review';
 import { ProductReviewResponseDrawer } from './ProductReviewResponseDrawer';
 import { ProductReviewDetailsDrawer } from './ProductReviewDetailsDrawer';
 import { Link } from 'react-router-dom';
@@ -22,30 +22,48 @@ export const EnhancedProductReviewDataTable = ({
   currentPage,
   onPageChange,
   pageSize,
-  showColumns = ['product', 'rating', 'status', 'created_at', 'customer', 'review', 'images', 'response', 'verified', 'actions']
+  showColumns = ['select', 'product', 'rating', 'audio', 'status', 'created_at', 'customer', 'review', 'images', 'response', 'verified', 'actions']
 }: EnhancedProductReviewDataTableProps) => {
   const [selectedReview, setSelectedReview] = useState<AdminProductReview | null>(null);
   const [selectedReviewForDetails, setSelectedReviewForDetails] = useState<AdminProductReview | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pageInput, setPageInput] = useState<string>(currentPage.toString());
-  const [localReviews, setLocalReviews] = useState<AdminProductReview[]>([]);
   const [triggerRefresh, setTriggerRefresh] = useState(0);
 
   const { mutate: updateStatus } = useAdminUpdateProductReviewStatusMutation();
   const { mutate: updateVerified } = useAdminUpdateProductReviewVerifiedMutation();
+  const { mutate: updateFeaturedForAudio } = useAdminUpdateProductReviewFeaturedForAudioMutation();
+  const { mutateSingle: generateAudio, mutateBatch: generateAudioBatch, isPending: isGeneratingAudio } = useAdminGenerateReviewAudioMutation();
 
+  const listQuery = {
+    ...query,
+    offset: query.offset ?? (currentPage - 1) * pageSize,
+  };
 
-  const { data, isLoading } = useAdminListProductReviews(query);
+  const { data, isLoading, error } = useAdminListProductReviews(listQuery, triggerRefresh);
 
-  const reviews = localReviews.length > 0 ? localReviews : data?.product_reviews || [];
+  const toggleSelected = (reviewId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(reviewId) ? prev.filter((id) => id !== reviewId) : [...prev, reviewId],
+    );
+  };
+
+  const handleBulkGenerate = async () => {
+    if (!selectedIds.length) return;
+    await generateAudioBatch(selectedIds);
+    setTriggerRefresh((value) => value + 1);
+  };
+
+  const getAudioBadge = (review: AdminProductReview) => {
+    const lang = (review.language || 'es').toUpperCase();
+    const gender = review.voice_gender === 'male' ? 'M' : 'F';
+    const status = review.audio_status || 'none';
+    return `${lang} · ${gender} · ${status}`;
+  };
+
+  const reviews = data?.product_reviews ?? [];
   const totalCount = data?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
-
-  // Update local reviews when data changes
-  React.useEffect(() => {
-    if (data?.product_reviews) {
-      setLocalReviews(data.product_reviews);
-    }
-  }, [data?.product_reviews]);
 
   const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -118,26 +136,10 @@ export const EnhancedProductReviewDataTable = ({
           e.stopPropagation();
           const nextStatus = getNextStatus(review.status);
 
-          // Update local state immediately for instant feedback
-          setLocalReviews(prevReviews =>
-            prevReviews.map(r =>
-              r.id === review.id ? { ...r, status: nextStatus } : r
-            )
-          );
-
-          // Then update the backend
-          updateStatus({ reviewId: review.id, status: nextStatus }, {
+          updateStatus({ reviewId: review.id, status: nextStatus as 'pending' | 'approved' | 'flagged' }, {
             onSuccess: () => {
-              // Status update successful - local state already updated
+              setTriggerRefresh((value) => value + 1);
             },
-            onError: () => {
-              // Revert the optimistic update on error
-              setLocalReviews(prevReviews =>
-                prevReviews.map(r =>
-                  r.id === review.id ? { ...r, status: review.status } : r
-                )
-              );
-            }
           });
         }}
         className="flex items-center gap-1 hover:bg-ui-bg-subtle rounded px-2 py-1"
@@ -181,26 +183,10 @@ export const EnhancedProductReviewDataTable = ({
           e.stopPropagation();
           const nextVerified = getNextVerified(review.verified);
 
-          // Update local state immediately for instant feedback
-          setLocalReviews(prevReviews =>
-            prevReviews.map(r =>
-              r.id === review.id ? { ...r, verified: nextVerified } : r
-            )
-          );
-
-          // Then update the backend
           updateVerified({ reviewId: review.id, verified: nextVerified }, {
             onSuccess: () => {
-              // Status update successful - local state already updated
+              setTriggerRefresh((value) => value + 1);
             },
-            onError: () => {
-              // Revert the optimistic update on error
-              setLocalReviews(prevReviews =>
-                prevReviews.map(r =>
-                  r.id === review.id ? { ...r, verified: review.verified } : r
-                )
-              );
-            }
           });
         }}
         className="flex items-center gap-1 hover:bg-ui-bg-subtle rounded px-2 py-1"
@@ -215,24 +201,50 @@ export const EnhancedProductReviewDataTable = ({
 
   return (
     <>
-      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-        <Table>
+      {selectedIds.length > 0 && (
+        <div className="mb-3 flex items-center gap-2">
+          <Button size="small" variant="secondary" onClick={handleBulkGenerate} isLoading={isGeneratingAudio}>
+            Generate audio ({selectedIds.length})
+          </Button>
+          <Button
+            size="small"
+            variant="transparent"
+            onClick={() => {
+              selectedIds.forEach((id) => {
+                updateFeaturedForAudio({ reviewId: id, featured: true });
+              });
+            }}
+          >
+            Mark for listen
+          </Button>
+        </div>
+      )}
+      <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <Table className="min-w-[1200px] w-full">
           <Table.Header>
             <Table.Row>
-              {showColumns.includes('product') && <Table.HeaderCell>Product</Table.HeaderCell>}
-              {showColumns.includes('rating') && <Table.HeaderCell>Rating</Table.HeaderCell>}
-              {showColumns.includes('status') && <Table.HeaderCell>Status</Table.HeaderCell>}
-              {showColumns.includes('created_at') && <Table.HeaderCell>Created At</Table.HeaderCell>}
-              {showColumns.includes('customer') && <Table.HeaderCell>Customer</Table.HeaderCell>}
-              {showColumns.includes('review') && <Table.HeaderCell>Review</Table.HeaderCell>}
-              {showColumns.includes('images') && <Table.HeaderCell>Images</Table.HeaderCell>}
-              {showColumns.includes('response') && <Table.HeaderCell>Response 1</Table.HeaderCell>}
-              {showColumns.includes('verified') && <Table.HeaderCell>Verified</Table.HeaderCell>}
-              {showColumns.includes('actions') && <Table.HeaderCell>Actions</Table.HeaderCell>}
+              {showColumns.includes('select') && <Table.HeaderCell className="w-10" />}
+              {showColumns.includes('product') && <Table.HeaderCell className="min-w-[180px]">Product</Table.HeaderCell>}
+              {showColumns.includes('rating') && <Table.HeaderCell className="w-28">Rating</Table.HeaderCell>}
+              {showColumns.includes('audio') && <Table.HeaderCell className="min-w-[9.5rem]">Audio</Table.HeaderCell>}
+              {showColumns.includes('status') && <Table.HeaderCell className="min-w-[7rem]">Status</Table.HeaderCell>}
+              {showColumns.includes('created_at') && <Table.HeaderCell className="min-w-[7rem] whitespace-nowrap">Created At</Table.HeaderCell>}
+              {showColumns.includes('customer') && <Table.HeaderCell className="min-w-[6rem]">Customer</Table.HeaderCell>}
+              {showColumns.includes('review') && <Table.HeaderCell className="min-w-[12rem]">Review</Table.HeaderCell>}
+              {showColumns.includes('images') && <Table.HeaderCell className="w-16">Images</Table.HeaderCell>}
+              {showColumns.includes('response') && <Table.HeaderCell className="min-w-[6rem]">Response</Table.HeaderCell>}
+              {showColumns.includes('verified') && <Table.HeaderCell className="min-w-[6.5rem]">Verified</Table.HeaderCell>}
+              {showColumns.includes('actions') && <Table.HeaderCell className="min-w-[8rem] whitespace-nowrap">Actions</Table.HeaderCell>}
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {isLoading ? (
+            {error ? (
+              <Table.Row>
+                <Table.Cell colSpan={showColumns.length} className="text-center py-8 text-ui-fg-error">
+                  Failed to load reviews: {error.message}
+                </Table.Cell>
+              </Table.Row>
+            ) : isLoading ? (
               <Table.Row>
                 <Table.Cell colSpan={showColumns.length} className="text-center py-8">
                   Loading...
@@ -247,6 +259,15 @@ export const EnhancedProductReviewDataTable = ({
             ) : (
               reviews.map((review) => (
                 <Table.Row key={review.id}>
+                  {showColumns.includes('select') && (
+                    <Table.Cell>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(review.id)}
+                        onChange={() => toggleSelected(review.id)}
+                      />
+                    </Table.Cell>
+                  )}
                   {showColumns.includes('product') && (
                     <Table.Cell>
                       {review.product ? (
@@ -280,6 +301,33 @@ export const EnhancedProductReviewDataTable = ({
                     </Table.Cell>
                   )}
 
+                  {showColumns.includes('audio') && (
+                    <Table.Cell className="min-w-[9.5rem] align-top">
+                      <div className="flex min-w-[9rem] flex-col gap-1.5">
+                        <Badge size="small" className="w-fit whitespace-nowrap">
+                          {getAudioBadge(review)}
+                        </Badge>
+                        <label className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={!!review.featured_for_audio}
+                            onChange={(e) => {
+                              updateFeaturedForAudio(
+                                { reviewId: review.id, featured: e.target.checked },
+                                {
+                                  onSuccess: () => {
+                                    setTriggerRefresh((value) => value + 1);
+                                  },
+                                },
+                              );
+                            }}
+                          />
+                          Listen
+                        </label>
+                      </div>
+                    </Table.Cell>
+                  )}
+
                   {showColumns.includes('status') && (
                     <Table.Cell>
                       {getStatusBadge(review)}
@@ -300,9 +348,12 @@ export const EnhancedProductReviewDataTable = ({
 
                   {showColumns.includes('review') && (
                     <Table.Cell>
-                      <p className="text-sm line-clamp-2 max-w-xs">
-                        {review.content}
-                      </p>
+                      <div className="max-w-xs">
+                        {review.title?.trim() && (
+                          <p className="text-sm font-medium line-clamp-1">{review.title}</p>
+                        )}
+                        <p className="text-sm line-clamp-2 text-ui-fg-subtle">{review.content}</p>
+                      </div>
                     </Table.Cell>
                   )}
 
@@ -328,7 +379,7 @@ export const EnhancedProductReviewDataTable = ({
                   )}
 
                   {showColumns.includes('actions') && (
-                    <Table.Cell>
+                    <Table.Cell className="min-w-[8rem] whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="transparent"
@@ -337,6 +388,17 @@ export const EnhancedProductReviewDataTable = ({
                           title="View details"
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="transparent"
+                          size="small"
+                          onClick={async () => {
+                            await generateAudio(review.id);
+                            setTriggerRefresh((value) => value + 1);
+                          }}
+                          title="Generate audio"
+                        >
+                          Audio
                         </Button>
                         <Button
                           variant="transparent"
@@ -464,6 +526,9 @@ export const EnhancedProductReviewDataTable = ({
           review={selectedReviewForDetails}
           open={selectedReviewForDetails !== null}
           setOpen={(open) => setSelectedReviewForDetails(open ? selectedReviewForDetails : null)}
+          onReviewUpdated={() => {
+            setTriggerRefresh((value) => value + 1);
+          }}
         />
       )}
     </>

@@ -111,11 +111,15 @@ const getColumns = (
       enableSorting: false,
       cell: ({ row }) => {
         const rating = row.original.rating;
+        const title = row.original.title?.trim();
         const content = row.original.content;
         return (
           <div className="flex flex-col gap-2 my-2 min-w-[200px] max-w-[400px]">
             <ReviewStars rating={rating} />
-            <p className="whitespace-normal break-words line-clamp-3">{content}</p>
+            {title && (
+              <p className="whitespace-normal break-words line-clamp-2 font-medium">{title}</p>
+            )}
+            <p className="whitespace-normal break-words line-clamp-3 text-ui-fg-subtle">{content}</p>
           </div>
         );
       },

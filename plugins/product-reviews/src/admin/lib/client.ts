@@ -61,6 +61,40 @@ export const productReviewClient: ProductReviewSDK = {
         });
       },
 
+      async updateFeaturedForAudio(id: string, featured: boolean): Promise<{ product_review: AdminProductReview }> {
+        return medusaClient.client.fetch(`/admin/product-reviews/${id}/featured-for-audio`, {
+          method: 'PUT',
+          body: { featured },
+        });
+      },
+
+      async updateLanguage(id: string, language: string): Promise<{ product_review: AdminProductReview }> {
+        return medusaClient.client.fetch(`/admin/product-reviews/${id}/language`, {
+          method: 'PUT',
+          body: { language },
+        });
+      },
+
+      async updateVoiceGender(id: string, voice_gender: 'female' | 'male'): Promise<{ product_review: AdminProductReview }> {
+        return medusaClient.client.fetch(`/admin/product-reviews/${id}/voice-gender`, {
+          method: 'PUT',
+          body: { voice_gender },
+        });
+      },
+
+      async generateAudio(id: string): Promise<{ product_review: AdminProductReview }> {
+        return medusaClient.client.fetch(`/admin/product-reviews/${id}/generate-audio`, {
+          method: 'POST',
+        });
+      },
+
+      async generateAudioBatch(reviewIds: string[]): Promise<{ results: Array<{ review_id: string; status: string; error?: string }> }> {
+        return medusaClient.client.fetch('/admin/product-reviews/generate-audio', {
+          method: 'POST',
+          body: { review_ids: reviewIds },
+        });
+      },
+
       async delete(id: string): Promise<void> {
         return medusaClient.client.fetch(`/admin/product-reviews/${id}`, {
           method: 'DELETE',
@@ -92,6 +126,18 @@ export const productReviewClient: ProductReviewSDK = {
       async refresh(body?: RefreshStatsRequest): Promise<RefreshStatsResponse> {
         return medusaClient.client.fetch('/admin/product-review-stats', {
           method: 'POST',
+          body,
+        });
+      },
+    },
+
+    products: {
+      async updateReviewAudioConfig(
+        productId: string,
+        body: { voices?: Record<string, { female?: string; male?: string }>; default_language?: string },
+      ): Promise<{ product: unknown }> {
+        return medusaClient.client.fetch(`/admin/products/${productId}/review-audio-config`, {
+          method: 'PUT',
           body,
         });
       },

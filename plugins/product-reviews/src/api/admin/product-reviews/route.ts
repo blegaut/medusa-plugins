@@ -45,10 +45,14 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
   const { prefixUrl } = productReviewService;
   const product_reviews_with_prefix = product_reviews.map((review: any) => ({
     ...review,
-    images: review.images.map((image: any) => ({
+    images: (review.images || []).map((image: any) => ({
       ...image,
       url: `${prefixUrl}${image.url}`,
     })),
+    audio_url:
+      review.audio_url && !String(review.audio_url).startsWith('http')
+        ? `${prefixUrl}${review.audio_url}`
+        : review.audio_url ?? null,
   }));
 
   res.status(200).json({ product_reviews: product_reviews_with_prefix, count: metadata.count, offset: metadata.skip, limit: metadata.take });

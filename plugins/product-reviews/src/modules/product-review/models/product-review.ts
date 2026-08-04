@@ -18,6 +18,12 @@ export const ProductReviewModel = model
     response: model.hasOne(() => ProductReviewResponseModel, { nullable: true }).nullable(),
     status: model.enum(['pending', 'approved', 'flagged']).default('pending'),
     verified: model.boolean().default(false),
+    audio_url: model.text().nullable(),
+    audio_status: model.enum(['pending', 'ready', 'failed']).nullable(),
+    featured_for_audio: model.boolean().default(false),
+    audio_generated_at: model.dateTime().nullable(),
+    language: model.text().nullable(),
+    voice_gender: model.enum(['female', 'male']).default('female'),
   })
   .indexes([
     {
