@@ -24,7 +24,7 @@ export const createProductReviewsStep = createStep(
     // once via createProductReviewImages) and so type is always set on the image rows.
     const createData: any[] = data.map(({ images: _images, ...d }) => ({
       ...d,
-      status: productReviewService.defaultReviewStatus,
+      status: d.status ?? productReviewService.defaultReviewStatus,
     }));
 
     const productReviews = await productReviewService.createProductReviews(createData);
