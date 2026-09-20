@@ -5,6 +5,8 @@ import type { UpdateProductReviewInput } from '../../modules/product-review/type
 import { reviewFieldsRequireAudioInvalidation } from '../../services/review-voice-resolver';
 import { invalidateReviewAudio } from '../../utils/invalidate-review-audio';
 
+const DEFAULT_REVIEW_IMAGE_TYPE = 'image';
+
 export const updateProductReviewsStepId = 'update-product-reviews-step';
 
 export const updateProductReviewsStep = createStep(
@@ -42,7 +44,19 @@ export const updateProductReviewsStep = createStep(
       }
     }
 
-    const updatedReviews = await productReviewService.updateProductReviews(data as any[]);
+    const updates = data.map((update) => ({
+      ...update,
+      ...(update.images
+        ? {
+            images: update.images.map((image) => ({
+              url: image.url,
+              type: image.type || DEFAULT_REVIEW_IMAGE_TYPE,
+            })),
+          }
+        : {}),
+    }));
+
+    const updatedReviews = await productReviewService.updateProductReviews(updates as any[]);
 
     return new StepResponse(updatedReviews, existingReviews);
   },

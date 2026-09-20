@@ -1,16 +1,21 @@
 import type { ProductReview } from './common';
 
+export type ProductReviewImageInput = {
+  url: string;
+  type?: string;
+};
+
 export type CreateProductReviewInput = Partial<
   Omit<ProductReview, 'id' | 'created_at' | 'updated_at' | 'images'>
 > & {
-  images?: { url: string }[];
+  images?: ProductReviewImageInput[];
 };
 
 export type UpdateProductReviewInput = Partial<
   Omit<ProductReview, 'id' | 'created_at' | 'updated_at' | 'images'>
 > & {
   id: string;
-  images?: { url: string }[];
+  images?: ProductReviewImageInput[];
 };
 
 export type CreateProductReviewsWorkflowInput = {
