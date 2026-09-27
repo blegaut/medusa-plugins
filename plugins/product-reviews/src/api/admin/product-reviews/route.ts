@@ -47,7 +47,9 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     ...review,
     images: (review.images || []).map((image: any) => ({
       ...image,
-      url: `${prefixUrl}${image.url}`,
+      // Same guard as audio_url below: a stored absolute url (a file provider
+      // url, a CDN) must not be prefixed a second time.
+      url: String(image.url).startsWith('http') ? image.url : `${prefixUrl}${image.url}`,
     })),
     audio_url:
       review.audio_url && !String(review.audio_url).startsWith('http')
