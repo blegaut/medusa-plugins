@@ -1,5 +1,5 @@
 import { type MiddlewareRoute, validateAndTransformBody } from '@medusajs/framework';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 
 export const updateProductReviewVoiceGenderSchema = z.object({
   voice_gender: z.enum(['female', 'male']),

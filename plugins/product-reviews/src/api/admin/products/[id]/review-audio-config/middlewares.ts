@@ -1,5 +1,5 @@
 import { type MiddlewareRoute, validateAndTransformBody } from '@medusajs/framework';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 
 const voiceGenderMapSchema = z.object({
   female: z.string().optional(),
@@ -7,7 +7,7 @@ const voiceGenderMapSchema = z.object({
 });
 
 export const updateProductReviewAudioConfigSchema = z.object({
-  voices: z.record(voiceGenderMapSchema).optional(),
+  voices: z.record(z.string(), voiceGenderMapSchema).optional(),
   default_language: z.string().optional(),
 });
 

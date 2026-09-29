@@ -1,5 +1,5 @@
 import { type MiddlewareRoute, validateAndTransformBody } from '@medusajs/framework';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 
 export const updateProductReviewFeaturedForAudioSchema = z.object({
   featured: z.boolean(),

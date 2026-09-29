@@ -1,7 +1,7 @@
 import { MedusaNextFunction, MedusaRequest, MedusaResponse, type MiddlewareRoute, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework';
 import { createFindParams, createOperatorMap } from '@medusajs/medusa/api/utils/validators';
 import { QueryConfig } from '@medusajs/types';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 import { ProductReview } from '../../../modules/product-review/types/common';
 
 const reviewStatuses = z.enum(['pending', 'approved', 'flagged'])
@@ -71,9 +71,11 @@ export const defaultStoreProductReviewFields = [
   'voice_gender',
   'audio_url',
   'audio_status',
-  'response.*',
-  'images.*'
-  // Removed variant relation fields - link not working yet
+  'response.id',
+  'response.content',
+  'images.id',
+  'images.url',
+  'images.type',
 ];
 
 export const allowedStoreProductReviewFields = [
@@ -94,9 +96,12 @@ export const allowedStoreProductReviewFields = [
   'audio_status',
   'audio_generated_at',
   'response',
+  'response.id',
+  'response.content',
   'images',
-  'product.*'
-  // Note: variant.* removed as relation isn't set up yet - using variant_sku enrichment instead
+  'images.id',
+  'images.url',
+  'images.type',
 ];
 
 export const defaultStoreReviewsQueryConfig: QueryConfig<ProductReview> = {

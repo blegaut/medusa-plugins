@@ -1,6 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from '@medusajs/framework/http';
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils';
-import { z, ZodSchema } from 'zod';
+import { z, ZodSchema } from "@medusajs/framework/zod";
 
 // Schema for review media
 export type ProductReviewMediaInput = {
@@ -26,7 +26,7 @@ export type AnonymousReviewInput = {
 export const anonymousReviewInputSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   full_name: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Valid email is required'),
+  email: z.email('Valid email is required'),
   rating: z.number().min(1).max(5, 'Rating must be between 1 and 5'),
   content: z.string().min(1, 'Content is required'),
   media: z.array(productReviewMediaInputSchema).default([]),

@@ -1,5 +1,5 @@
 import { type MiddlewareRoute, validateAndTransformBody } from '@medusajs/framework';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 
 export const updateProductReviewLanguageSchema = z.object({
   language: z.string().min(2).max(5),

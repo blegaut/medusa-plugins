@@ -1,6 +1,6 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework';
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 
 const BulkImportSchema = z.object({
   reviews: z.array(

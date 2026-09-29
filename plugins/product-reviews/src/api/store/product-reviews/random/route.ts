@@ -1,6 +1,6 @@
 import type { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework';
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils';
-import { z } from 'zod';
+import { z } from "@medusajs/framework/zod";
 import type { ProductReview } from '../../../../modules/product-review/types/common';
 import { listStoreProductReviewsRandomQuerySchema } from '../middlewares';
 

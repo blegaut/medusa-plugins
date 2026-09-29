@@ -70,7 +70,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "braintree": "^3.30.0"
