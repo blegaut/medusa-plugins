@@ -1,6 +1,6 @@
 {
   "name": "@blegaut/medusa-product-reviews-enhanced",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Enhanced Product Reviews Plugin for Medusa with advanced filtering, pagination and admin UI",
   "author": "blegaut",
   "license": "MIT",
@@ -97,7 +97,6 @@
     "hoistingLimits": "workspaces"
   },
   "dependencies": {
-    "@blegaut/medusa-product-reviews-enhanced": "file:.yalc/@blegaut/medusa-product-reviews-enhanced",
     "@hookform/resolvers": "3.4.2",
     "@medusajs/js-sdk": "2.21.2",
     "@medusajs/workflows-sdk": "2.21.2",
